@@ -17,8 +17,14 @@ const client = net.createConnection({port: 3000}, () => {
             }
             client.write(ans);
         }
+        
     });
 });
+
+client.on('disconnect', () => {
+    client.write('KICKED FROM SERVER')
+    process.stdin.read() = null;
+})
 
 client.setEncoding('utf-8');
 

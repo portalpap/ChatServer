@@ -8,20 +8,23 @@ const clientCommands = {
     "1whisper"       : ['w', 'whisper', 'dm', 'directmessage'],
     "0message"       : ['m', 'ms', 'message'],
     "0users"         : ['u', 'us', 'lu', 'users'],
-    "1changeUsername": ['un', 'cu', 'changeu', 'username', 'changeusername', 'name', 'changename'],
-    "0kilomanj"      : ['kilomanj', '@@@']
+    "1changeUsername": ['un', 'cu', 'changeu', 'username', 'changeusername', 'name', 'changename']
 }
 const adminCommands = {
     "1kick"      : ['k', 'kick', 'ku', 'kickuser'],
     "2renameUser": ['ru', 'renameuser'],
-    "1makeAdmin" : ['ma', 'makeadmin', 'ta', 'turnadmin']
+    "1makeAdmin" : ['ma', 'makeadmin', 'ta', 'turnadmin'],
+}
+const cheatCommands = {
+    "0kilomanj"  : ['kilomanj', '@@@']
 }
 
 function testCommand(inputCommand, inpot){
     let availibleCommands = clientCommands
     availibleCommands = {
         ...clientCommands,
-        ...adminCommands
+        ...adminCommands,
+        ...cheatCommands
     }
     for(let emiterIter in availibleCommands){
         for(let commandIter of availibleCommands[emiterIter]){
@@ -68,7 +71,12 @@ const server = net.createServer((client) => {
     client.setEncoding('utf-8');
 
     console.log('connected to server');
-    client.write('Welcome to the party pal');
+    client.write('Welcome to the party pal\n');
+    let tempCommands = ''
+    for(let iter in clientCommands){
+        tempCommands += `"${iter.slice(1)}": ${clientCommands[]}\n`;
+    }
+    client.write(`Available Commands:\n ${tempCommands}`);
 
 
     let commandDataPackage = null;
@@ -131,25 +139,43 @@ const server = net.createServer((client) => {
         client.write(temp.join('-'));
     });         
     client.on("changeUsername", () =>{
-        me.username = commandDataPackage[0];
-        client.write(`    Changed username to ${commandDataPackage[0]}`)
+        if(commandDataPackage[0] != undefined){
+            me.username = commandDataPackage[0];
+            myUsername = me.username;
+
+            client.write(`    Changed username to ${commandDataPackage[0]}`);
+        } else {
+            client.write(` Please enter a username`);
+        }
     });
     client.on("kick",           () =>{
         if(me.isAdmin) {
-            for(let iter of users)
+            let temp = 0;
+            for(let iter of users){
                 if(iter.username == commandDataPackage[0]){
-                    iter.isAdmin = true;
+                    iter.clientID.write('You have been kicked from the game');
+                    iter.clientID.end();
+                    break;
                 }
+                temp++;
+            }
+            if(temp >= users.length){
+                client.write('Please enter a vaild username to kick');
+            } else {
+                users.splice(temp, 1);
+            }
         } else {
             client.write('You do not have permision to use that command')
         }
     });
     client.on("renameUser",     () =>{
         if(me.isAdmin) {
-            for(let iter of users)
-            if(iter.username == commandDataPackage[0]){
-                iter.username = commandDataPackage[1];
-            }
+            if(commandDataPackage[1] != undefined)
+                for(let iter of users)
+                    if(iter.username == commandDataPackage[0])
+                        iter.username = commandDataPackage[1];
+            else 
+                client.write(`Please enter a username`)
         } else {
             client.write('You do not have permision to use that command')
         }
@@ -158,7 +184,12 @@ const server = net.createServer((client) => {
         if(me.isAdmin) {
             for(let iter of users)
                 if(iter.username == commandDataPackage[0]){
-                    iter.isAdmin = true;
+                    if(iter.isAdmin != true){
+                        client.write(`${iter.username} is now an admin`)
+                        iter.isAdmin = true;
+                    } else {
+                        client.write(`${iter.username} is already an admin`)
+                    }
                 }
         } else {
             client.write('You do not have permision to use that command')
