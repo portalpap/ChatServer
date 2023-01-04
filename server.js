@@ -74,9 +74,9 @@ const server = net.createServer((client) => {
     client.write('Welcome to the party pal\n');
     let tempCommands = ''
     for(let iter in clientCommands){
-        tempCommands += `"${iter.slice(1)}": ${clientCommands[]}\n`;
+        tempCommands += `\t"${iter.slice(1)}": /${clientCommands[iter].join(' /')}\n`;
     }
-    client.write(`Available Commands:\n ${tempCommands}`);
+    client.write(`\nAvailable Commands:\n${tempCommands}`);
 
 
     let commandDataPackage = null;
